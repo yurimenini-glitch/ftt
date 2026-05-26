@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeTrack Global Pro</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --warning: #eab308;
+            --danger: #dc2626;
+            --bg-light: #f8fafc;
+            --bg-dark: #0f172a;
+            --bg-sidebar: #1e293b;
+            --text-main: #334155;
+            --border: #cbd5e1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Lateral */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 0;
+        }
+        .sidebar-top h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.25rem;
+            color: #f8fafc;
+            letter-spacing: 0.5px;
+        }
+        .nav-menu { display: flex; flex-direction: column; }
+        .nav-btn {
+            background: none; border: none; color: #cbd5e1;
+            padding: 12px 20px; text-align: left; font-size: 0.95rem;
+            cursor: pointer; transition: 0.2s; border-left: 4px solid transparent;
+        }
+        .nav-btn:hover, .nav-btn.active {
+            background-color: #334155; color: white;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Configurações na Sidebar */
+        .sidebar-settings {
+            padding: 15px 20px;
+            border-top: 1px solid #334155;
+            background: #111827;
+        }
+        .settings-group { margin-bottom: 12px; }
+        .settings-group:last-child { margin-bottom: 0; }
+        .settings-group label {
+            display: block; font-size: 0.75rem; color: #94a3b8;
+            margin-bottom: 4px; text-transform: uppercase; font-weight: bold;
+        }
+        .sidebar select {
+            width: 100%; padding: 6px 10px; background: #334155;
+            border: 1px solid #475569; color: white; border-radius: 4px;
+            font-size: 0.85rem; outline: none; cursor: pointer;
+        }
+
+        /* Área de Conteúdo Principal */
+        .main-content { flex: 1; padding: 25px; overflow-y: auto; }
+        .view-section { display: none; animation: fadeIn 0.2s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Componentes Enxutos (Cards e Formulários) */
+        .card {
+            background: white; padding: 20px; border-radius: 8px;
+            border: 1px solid var(--border); max-width: 480px; margin-bottom: 20px;
+        }
+        .card-large { max-width: 100%; }
+        h3 { margin-bottom: 15px; font-size: 1.1rem; color: var(--bg-dark); }
+
+        .form-group { margin-bottom: 12px; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+        
+        label { display: block; margin-bottom: 4px; font-size: 0.85rem; font-weight: 600; color: #475569; }
+        input {
+            width: 100%; padding: 8px 12px; border: 1px solid var(--border);
+            border-radius: 5px; font-size: 0.9rem; color: var(--bg-dark); outline: none;
+        }
+        input:focus { border-color: var(--primary); }
+        
+        .field-desc { display: block; font-size: 0.75rem; color: #64748b; margin-top: 3px; font-weight: normal; }
+
+        /* Input com Prefixo de Moeda */
+        .input-prefix-group { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 5px; background: white; overflow: hidden; }
+        .input-prefix-group .curr-prefix { padding: 0 12px; background: #f1f5f9; color: #64748b; font-size: 0.9rem; font-weight: bold; border-right: 1px solid var(--border); height: 100%; display: flex; align-items: center; }
+        .input-prefix-group input { border: none; }
+
+        /* Displays do Cronômetro */
+        .timer-container { text-align: center; margin: 20px 0; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid var(--border); }
+        .time-display { font-size: 3rem; font-family: monospace; font-weight: bold; color: var(--bg-dark); line-height: 1; }
+        .money-display { font-size: 1.6rem; color: var(--success); font-weight: bold; margin-top: 5px; }
+        
+        .controls { display: flex; gap: 8px; justify-content: center; }
+        button { padding: 8px 14px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-warning { background: var(--warning); color: #0f172a; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; width: 100%; padding: 10px; margin-top: 5px; }
+
+        /* Dashboard Indicadores */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 15px; border-radius: 6px; border: 1px solid var(--border); border-left: 4px solid var(--primary); }
+        .stat-card h4 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-card .value { font-size: 1.3rem; font-weight: bold; color: var(--bg-dark); }
+
+        /* Lista de Distribuição */
+        .bar-container { margin-bottom: 12px; }
+        .bar-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 3px; font-weight: 500; }
+        .bar-bg { width: 100%; background: #e2e8f0; border-radius: 10px; height: 8px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--primary); border-radius: 10px; width: 0%; }
+
+        /* Tabela de Histórico */
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 0.9rem; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f1f5f9; color: #475569; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        .actions-cell button { padding: 3px 6px; font-size: 0.8rem; margin-right: 3px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; }
+        .actions-cell button:hover { background: #e2e8f0; }
+
+        /* Modal Compacto */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 20px; border-radius: 6px; width: 100%; max-width: 360px; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-top">
+            <h2>⏱️ TimeTrack</h2>
+            <div class="nav-menu">
+                <button class="nav-btn active" id="btn-nav-timer" onclick="switchView('timer')">⏳ Cronômetro</button>
+                <button class="nav-btn" id="btn-nav-dashboard" onclick="switchView('dashboard')">📊 Dashboard</button>
+                <button class="nav-btn" id="btn-nav-manual" onclick="switchView('manual')">📝 Entrada Manual</button>
+                <button class="nav-btn" id="btn-nav-history" onclick="switchView('history')">📂 Histórico</button>
+            </div>
+        </div>
+
+        <div class="sidebar-settings">
+            <div class="settings-group">
+                <label id="lbl-setting-lang">Idioma / Language</label>
+                <select id="global-lang" onchange="setLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="pt">Português</option>
+                </select>
+            </div>
+            <div class="settings-group">
+                <label id="lbl-setting-curr">Moeda Padrão</label>
+                <select id="global-curr" onchange="setCurrency(this.value)">
+                    <option value="USD">USD ($)</option>
+                    <option value="BRL">BRL (R$)</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        
+        <section id="view-timer" class="view-section active">
+            <div class="card">
+                <h3 id="title-timer">Rastrear Tempo</h3>
+                <div class="form-group">
+                    <label id="lbl-t-project">Projeto</label>
+                    <input type="text" id="t-project" placeholder="Ex: ZZZX">
+                    <span class="field-desc" id="desc-t-project">Nome ou código identificador.</span>
+                </div>
+                <div class="form-group">
+                    <label id="lbl-t-rate">Valor por Hora</label>
+                    <div class="input-prefix-group">
+                        <span class="curr-prefix">$</span>
+                        <input type="number" id="t-rate" value="60" min="0">
+                    </div>
+                    <span class="field-desc" id="desc-t-rate">Preço cobrado pela hora de trabalho.</span>
+                </div>
+
+                <div class="timer-container">
+                    <div class="time-display" id="t-time">00:00:00</div>
+                    <div class="money-display" id="t-money">$ 0.00</div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn-primary" id="btn-start" onclick="startTimer()">▶ Iniciar</button>
+                    <button class="btn-warning" id="btn-pause" onclick="pauseTimer()"></div>⏸ Pausar</button>
+                    <button class="btn-danger" id="btn-stop" onclick="stopTimer()">⏹ Salvar</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-dashboard" class="view-section">
+            <h3 id="title-dash">Visão Geral</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4 id="lbl-stat-earnings">Total Faturado</h4>
+                    <div class="value" id="d-total-money">$ 0.00</div>
+                </div>
+                <div class="stat-card">
+                    <h4 id="lbl-stat-hours">Total de Horas</h4>
+                    <div class="value" id="d-total-time">0h 0m</div>
+                </div>
+                <div class="stat-card">
+                    <h4 id="lbl-stat-projects">Projetos</h4>
+                    <div class="value" id="d-total-projects">0</div>
+                </div>
+            </div>
+
+            <div class="card card-large">
+                <h3 id="title-dist">Distribuição por Projeto</h3>
+                <div id="project-distribution"></div>
+            </div>
+        </section>
+
+        <section id="view-manual" class="view-section">
+            <div class="card">
+                <h3 id="title-manual">Lançamento Manual</h3>
+                <div class="form-group">
+                    <label id="lbl-m-project">Projeto</label>
+                    <input type="text" id="m-project" placeholder="Ex: ZZZX">
+                </div>
+                <div class="form-group">
+                    <label id="lbl-m-rate">Valor por Hora</label>
+                    <div class="input-prefix-group">
+                        <span class="curr-prefix">$</span>
+                        <input type="number" id="m-rate" value="60">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label id="lbl-m-hours">Horas</label>
+                        <input type="number" id="m-hours" value="1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label id="lbl-m-minutes">Minutos</label>
+                        <input type="number" id="m-minutes" value="0" min="0" max="59">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label id="lbl-m-date">Data</label>
+                    <input type="date" id="m-date">
+                    <span class="field-desc" id="desc-m-date">Data da realização do serviço.</span>
+                </div>
+                <button class="btn-success" id="btn-manual-save" onclick="saveManualEntry()">Salvar Entrada</button>
+            </div>
+        </section>
+
+        <section id="view-history" class="view-section">
+            <h3 id="title-history">Histórico de Atividades</h3>
+            <div class="card card-large" style="overflow-x: auto; padding: 0;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="th-date">Data</th>
+                            <th id="th-project">Projeto</th>
+                            <th id="th-duration">Duração</th>
+                            <th id="th-rate">Valor/h</th>
+                            <th id="th-total">Total</th>
+                            <th id="th-actions">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <h3 id="title-modal-edit">Editar Registro</h3>
+            <input type="hidden" id="e-id">
+            <div class="form-group">
+                <label id="lbl-e-project">Projeto</label>
+                <input type="text" id="e-project">
+            </div>
+            <div class="form-group">
+                <label id="lbl-e-earned">Valor Total</label>
+                <input type="number" id="e-earned" step="0.01">
+            </div>
+            <div class="form-row" style="margin-top: 15px;">
+                <button class="btn-primary" id="btn-edit-save" style="flex: 1;" onclick="saveEdit()">Salvar</button>
+                <button class="btn-warning" id="btn-edit-cancel" style="flex: 1;" onclick="closeModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dictionary Multilíngue
+        const i18n = {
+            en: {
+                "btn-nav-timer": "⏳ Timer", "btn-nav-dashboard": "📊 Dashboard", "btn-nav-manual": "📝 Manual Entry", "btn-nav-history": "📂 History",
+                "lbl-setting-lang": "Language", "lbl-setting-curr": "Default Currency", "title-timer": "Track Time", "lbl-t-project": "Project",
+                "desc-t-project": "Project code or name.", "lbl-t-rate": "Hourly Rate", "desc-t-rate": "Amount charged per hour.",
+                "btn-start": "▶ Start", "btn-pause": "⏸ Pause", "btn-stop": "⏹ Save", "title-dash": "Overview", "lbl-stat-earnings": "Total Earnings",
+                "lbl-stat-hours": "Total Hours", "lbl-stat-projects": "Projects", "title-dist": "Project Distribution", "title-manual": "Manual Entry",
+                "lbl-m-project": "Project", "lbl-m-rate": "Hourly Rate", "lbl-m-hours": "Hours", "lbl-m-minutes": "Minutes", "lbl-m-date": "Date",
+                "desc-m-date": "Date of the performed work.", "btn-manual-save": "Save Entry", "th_date": "Date", "th_project": "Project",
+                "th_duration": "Duration", "th_rate": "Rate/h", "th_total": "Total", "th_actions": "Actions", "title-history": "Activity Logs",
+                "title-modal-edit": "Edit Entry", "lbl-e-project": "Project", "lbl-e-earned": "Total Value", "btn-edit-save": "Save",
+                "btn-edit-cancel": "Cancel", "msg-success": "Saved successfully!", "msg-invalid": "Please enter a valid duration.",
+                "msg-delete": "Delete this record?", "msg-no-data": "No logged data available."
+            },
+            pt: {
+                "btn-nav-timer": "⏳ Cronômetro", "btn-nav-dashboard": "📊 Dashboard", "btn-nav-manual": "📝 Entrada Manual", "btn-nav-history": "📂 Histórico",
+                "lbl-setting-lang": "Idioma", "lbl-setting-curr": "Moeda Padrão", "title-timer": "Rastrear Tempo", "lbl-t-project": "Projeto",
+                "desc-t-project": "Nome ou código identificador.", "lbl-t-rate": "Valor por Hora", "desc-t-rate": "Preço cobrado pela hora de trabalho.",
+                "btn-start": "▶ Iniciar", "btn-pause": "⏸ Pausar", "btn-stop": "⏹ Salvar", "title-dash": "Visão Geral", "lbl-stat-earnings": "Total Faturado",
+                "lbl-stat-hours": "Total de Horas", "lbl-stat-projects": "Projetos", "title-dist": "Distribuição por Projeto", "title-manual": "Lançamento Manual",
+                "lbl-m-project": "Projeto", "lbl-m-rate": "Valor por Hora", "lbl-m-hours": "Horas", "lbl-m-minutes": "Minutos", "lbl-m-date": "Data",
+                "desc-m-date": "Data da realização do serviço.", "btn-manual-save": "Salvar Entrada", "th_date": "Data", "th_project": "Projeto",
+                "th_duration": "Duração", "th_rate": "Valor/h", "th_total": "Total", "th_actions": "Ações", "title-history": "Histórico de Atividades",
+                "title-modal-edit": "Editar Registro", "lbl-e-project": "Projeto", "lbl-e-earned": "Valor Total", "btn-edit-save": "Salvar",
+                "btn-edit-cancel": "Cancelar", "msg-success": "Salvo com sucesso!", "msg-invalid": "Insira uma duração válida.",
+                "msg-delete": "Excluir este registro?", "msg-no-data": "Nenhum dado registrado."
+            }
+        };
+
+        // Estado do App
+        let currentLang = localStorage.getItem('timeTrackerLang') || 'en';
+        let currentCurr = localStorage.getItem('timeTrackerCurr') || 'USD';
+        let logs = JSON.parse(localStorage.getItem('timeTrackerLogs')) || [];
+
+        // Inicialização de Moeda e Idiomas
+        document.getElementById('global-lang').value = currentLang;
+        document.getElementById('global-curr').value = currentCurr;
+        document.getElementById('m-date').valueAsDate = new Date();
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('timeTrackerLang', lang);
+            
+            // Traduz textos estáticos baseados em IDs
+            Object.keys(i18n[lang]).forEach(key => {
+                const el = document.getElementById(key);
+                if (el) el.textContent = i18n[lang][key];
+            });
+
+            // Traduz cabeçalhos da tabela
+            document.getElementById('th-date').textContent = i18n[lang]['th_date'];
+            document.getElementById('th-project').textContent = i18n[lang]['th_project'];
+            document.getElementById('th-duration').textContent = i18n[lang]['th_duration'];
+            document.getElementById('th-rate').textContent = i18n[lang]['th_rate'];
+            document.getElementById('th-total').textContent = i18n[lang]['th_total'];
+            document.getElementById('th-actions').textContent = i18n[lang]['th_actions'];
+
+            renderHistory();
+            updateDashboard();
+        }
+
+        function setCurrency(curr) {
+            currentCurr = curr;
+            localStorage.setItem('timeTrackerCurr', curr);
+            document.querySelectorAll('.curr-prefix').forEach(el => el.textContent = curr === 'BRL' ? 'R$' : '$');
+            updateTimerDisplay();
+        }
+
+        function formatMoney(value, currencyCode) {
+            const locale = currencyCode === 'BRL' ? 'pt-BR' : 'en-US';
+            return value.toLocaleString(locale, { style: 'currency', currency: currencyCode });
+        }
+
+        function formatDuration(ms) {
+            const totalSec = Math.floor(ms / 1000);
+            const h = Math.floor(totalSec / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+            return `${h}h ${m}m ${s}s`;
+        }
+
+        // Navegação
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            // Procura o botão correspondente
+            event.target.classList.add('active');
+
+            if(viewId === 'dashboard') updateDashboard();
+            if(viewId === 'history') renderHistory();
+        }
+
+        // Lógica do Cronômetro
+        let t_start = 0, t_elapsed = 0, t_interval = null, t_running = false;
+
+        function updateTimerDisplay() {
+            const rate = parseFloat(document.getElementById('t-rate').value) || 0;
+            const totalSec = Math.floor(t_elapsed / 1000);
+            const h = Math.floor(totalSec / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+
+            document.getElementById('t-time').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            document.getElementById('t-money').textContent = formatMoney((totalSec / 3600) * rate, currentCurr);
+        }
+
+        function startTimer() {
+            if (!t_running) {
+                t_start = Date.now() - t_elapsed;
+                t_interval = setInterval(() => { t_elapsed = Date.now() - t_start; updateTimerDisplay(); }, 1000);
+                t_running = true;
+            }
+        }
+
+        function pauseTimer() { if (t_running) { clearInterval(t_interval); t_running = false; } }
+
+        function stopTimer() {
+            if (t_elapsed === 0) return;
+            pauseTimer();
+
+            const project = document.getElementById('t-project').value || 'ZZZX';
+            const rate = parseFloat(document.getElementById('t-rate').value) || 0;
+            const earned = (Math.floor(t_elapsed / 1000) / 3600) * rate;
+
+            logs.push({
+                id: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                project, rate, durationMs: t_elapsed, earned, currency: currentCurr
+            });
+
+            saveAndSync();
+            t_elapsed = 0;
+            updateTimerDisplay();
+            document.getElementById('t-project').value = '';
+            alert(i18n[currentLang]['msg-success']);
+        }
+
+        // Registro Manual
+        function saveManualEntry() {
+            const project = document.getElementById('m-project').value || 'ZZZX';
+            const rate = parseFloat(document.getElementById('m-rate').value) || 0;
+            const h = parseInt(document.getElementById('m-hours').value) || 0;
+            const m = parseInt(document.getElementById('m-minutes').value) || 0;
+            const date = document.getElementById('m-date').value;
+
+            const durationMs = (h * 3600000) + (m * 60000);
+            if (durationMs === 0) { alert(i18n[currentLang]['msg-invalid']); return; }
+
+            const earned = (durationMs / 3600000) * rate;
+
+            logs.push({ id: Date.now(), date, project, rate, durationMs, earned, currency: currentCurr });
+            saveAndSync();
+            
+            document.getElementById('m-project').value = '';
+            alert(i18n[currentLang]['msg-success']);
+        }
+
+        // Manipulação de Histórico
+        function renderHistory() {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+            const sorted = [...logs].sort((a,b) => b.id - a.id);
+
+            sorted.forEach(log => {
+                const tr = document.createElement('tr');
+                const formattedDate = log.date.split('-').reverse().join('/');
+                tr.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td><strong>${log.project}</strong></td>
+                    <td>${formatDuration(log.durationMs)}</td>
+                    <td>${formatMoney(log.rate, log.currency)}</td>
+                    <td style="color:var(--success);font-weight:bold;">${formatMoney(log.earned, log.currency)}</td>
+                    <td class="actions-cell">
+                        <button onclick="openEdit(${log.id})">✏️</button>
+                        <button onclick="deleteLog(${log.id})">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteLog(id) {
+            if (confirm(i18n[currentLang]['msg-delete'])) {
+                logs = logs.filter(l => l.id !== id);
+                saveAndSync();
+            }
+        }
+
+        function openEdit(id) {
+            const log = logs.find(l => l.id === id);
+            if (!log) return;
+            document.getElementById('e-id').value = log.id;
+            document.getElementById('e-project').value = log.project;
+            document.getElementById('e-earned').value = log.earned.toFixed(2);
+            document.getElementById('edit-modal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('edit-modal').classList.remove('active'); }
+
+        function saveEdit() {
+            const id = parseInt(document.getElementById('e-id').value);
+            const index = logs.findIndex(l => l.id === id);
+            if(index !== -1) {
+                logs[index].project = document.getElementById('e-project').value;
+                logs[index].earned = parseFloat(document.getElementById('e-earned').value) || 0;
+                saveAndSync();
+                closeModal();
+            }
+        }
+
+        // Lógica e Cálculos da Dashboard
+        function updateDashboard() {
+            let totalUSD = 0, totalBRL = 0, totalMs = 0;
+            const projectMap = {};
+
+            logs.forEach(log => {
+                totalMs += log.durationMs;
+                if (log.currency === 'BRL') totalBRL += log.earned;
+                else totalUSD += log.earned;
+
+                if (!projectMap[log.project]) projectMap[log.project] = { earnedUSD: 0, earnedBRL: 0, ms: 0 };
+                if (log.currency === 'BRL') projectMap[log.project].earnedBRL += log.earned;
+                else projectMap[log.project].earnedUSD += log.earned;
+                projectMap[log.project].ms += log.durationMs;
+            });
+
+            // Exibe Totais Acumulados Separados por Moeda
+            let earningsString = "";
+            if (totalUSD > 0 || (totalUSD === 0 && totalBRL === 0)) earningsString += formatMoney(totalUSD, 'USD');
+            if (totalBRL > 0) earningsString += (totalUSD > 0 ? " + " : "") + formatMoney(totalBRL, 'BRL');
+            
+            document.getElementById('d-total-money').textContent = earningsString;
+            document.getElementById('d-total-projects').textContent = Object.keys(projectMap).length;
+            
+            const hours = Math.floor(totalMs / 3600000);
+            const minutes = Math.floor((totalMs % 3600000) / 60000);
+            document.getElementById('d-total-time').textContent = `${hours}h ${minutes}m`;
+
+            // Renderiza Distribuição Visual por Projeto
+            const distContainer = document.getElementById('project-distribution');
+            distContainer.innerHTML = '';
+            
+            const projectsArray = Object.entries(projectMap);
+            if (projectsArray.length === 0) {
+                distContainer.innerHTML = `<p style="color:#64748b;font-size:0.85rem;">${i18n[currentLang]['msg-no-data']}</p>`;
+                return;
+            }
+
+            // Descobre o teto máximo de faturamento para servir de base 100% da barra visual
+            let maxEarnedValue = 0;
+            projectsArray.forEach(([_, data]) => {
+                const combinedValueEstimate = data.earnedUSD + (data.earnedBRL / 5); // Conversão simulada rápida só para tamanho de barra proporcional
+                if (combinedValueEstimate > maxEarnedValue) maxEarnedValue = combinedValueEstimate;
+            });
+
+            projectsArray.forEach(([name, data]) => {
+                let textGanhos = "";
+                if (data.earnedUSD > 0) textGanhos += formatMoney(data.earnedUSD, 'USD') + " ";
+                if (data.earnedBRL > 0) textGanhos += (data.earnedUSD > 0 ? "+ " : "") + formatMoney(data.earnedBRL, 'BRL');
+                
+                const currentEstimate = data.earnedUSD + (data.earnedBRL / 5);
+                const percentBar = maxEarnedValue > 0 ? (currentEstimate / maxEarnedValue) * 100 : 0;
+
+                distContainer.innerHTML += `
+                    <div class="bar-container">
+                        <div class="bar-label">
+                            <span>${name} <small style="color:#64748b;">(${formatDuration(data.ms)})</small></span>
+                            <span style="color:var(--success); font-weight:bold;">${textGanhos}</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" style="width: ${percentBar}%;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function saveAndSync() {
+            localStorage.setItem('timeTrackerLogs', JSON.stringify(logs));
+            renderHistory();
+            updateDashboard();
+        }
+
+        // Execuções Iniciais de Setup
+        setLanguage(currentLang);
+        setCurrency(currentCurr);
+    </script>
+</body>
+</html>
